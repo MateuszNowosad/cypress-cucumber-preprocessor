@@ -353,9 +353,15 @@ click on a `.feature` file on the list of specs, and see the magic happening!
 
 You can use tags to select which test should run using [cucumber's tag expressions](https://github.com/cucumber/cucumber/tree/master/tag-expressions).
 Keep in mind we are using newer syntax, eg. `'not @foo and (@bar or @zap)'`.
-In order to initialize tests using tags you will have to run cypress and pass TAGS environment variable.
+In order to initialize tests using tags you will have to run cypress and pass `--cucumber-tags` argument.
 
 Example:
+
+```shell
+  ./node_modules/.bin/cypress-tags run --cucumber-tags 'not @foo and (@bar or @zap)'
+```
+
+<span style="color:orange">*DEPRECATED*</span>
 
 ```shell
   ./node_modules/.bin/cypress-tags run -e TAGS='not @foo and (@bar or @zap)'
@@ -390,6 +396,20 @@ Then, any scenarios tagged with @ignore will be skipped when running the tests u
 You can use a glob expression to select which feature files should be included.
 
 Example:
+
+```shell
+  ./node_modules/.bin/cypress-tags run --glob 'cypress/integration/**/*.feature'
+```
+
+or 
+
+```shell
+  ./node_modules/.bin/cypress-tags run -g 'cypress/integration/**/*.feature'
+```
+
+<span style="color:orange">*DEPRECATED*</span>
+
+This will not work if your glob pattern contains commas since Cypress expects comma delimited string of env variables.
 
 ```shell
   ./node_modules/.bin/cypress-tags run -e GLOB='cypress/integration/**/*.feature'

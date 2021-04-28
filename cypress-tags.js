@@ -3,7 +3,9 @@
 const { Parser } = require("gherkin");
 const glob = require("glob");
 const fs = require("fs");
+const minimist = require("minimist");
 const { execFileSync } = require("child_process");
+const { getFilteredCLIArguments } = require("./lib/tagsHelper");
 
 const { shouldProceedCurrentStep } = require("./lib/tagsHelper");
 
@@ -13,6 +15,10 @@ const debug = (message, ...rest) =>
       console.log(`DEBUG: ${message}`, rest.length ? rest : "")
     : null;
 
+/**
+ * @deprecated To be removed, kept for legacy reasons.
+ * Users will be expected to pass args by --glob/--g and --cucumber-tags to fix issues related to commas in those parameters.
+ */
 function parseArgsOrDefault(argPrefix, defaultValue) {
   const matchedArg = process.argv
     .slice(2)
@@ -28,8 +34,13 @@ function parseArgsOrDefault(argPrefix, defaultValue) {
   return argValue !== "" ? argValue : defaultValue;
 }
 
-const envGlob = parseArgsOrDefault("GLOB", false);
-const envTags = parseArgsOrDefault("TAGS", "");
+const args = minimist(process.argv.slice(2), {
+  string: ["g", "cucumber-tags"],
+  alias: { g: "glob" },
+});
+
+const envGlob = args.g || parseArgsOrDefault("GLOB", false);
+const envTags = args["cucumber-tags"] || parseArgsOrDefault("TAGS", "");
 
 let specGlob = envGlob || "cypress/integration/**/*.feature";
 let ignoreGlob = "";
@@ -122,7 +133,11 @@ try {
   if (featuresToRun.length || envTags === "") {
     execFileSync(
       getCypressExecutable(),
-      [...process.argv.slice(2), "--spec", featuresToRun.join(",")],
+      [
+        ...getFilteredCLIArguments(["-g", "--glob", "-ct", "--cucumber-tags"]),
+        "--spec",
+        featuresToRun.join(","),
+      ],
       {
         stdio: [process.stdin, process.stdout, process.stderr],
       }
